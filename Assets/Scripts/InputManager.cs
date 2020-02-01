@@ -51,12 +51,12 @@ public class InputManager : MonoBehaviour
     void Update()
     {
         GetHovering();
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
         {
             StartCoroutine(Gull.Posters.Input.Post(new Gull.Events.Input.OnStartDrag()));
             StartSelection();
         }
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0) || Input.GetKeyUp(KeyCode.Space))
         {
             StartCoroutine(Gull.Posters.Input.Post(new Gull.Events.Input.OnEndDrag()));
             EndSelection();

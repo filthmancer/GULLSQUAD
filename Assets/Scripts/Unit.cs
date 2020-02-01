@@ -7,24 +7,51 @@ using TMPro;
 
 namespace Gull
 {
+    public enum EThreatLevel
+    {
+        None = 0, Low = 1, Medium = 2, High = 3, Impossible = 4
+    }
     public class Unit : Gull.Object
     {
         protected BoxCollider2D collider;
         protected float animTime = 0.25F;
         public float moveSpeed = 0.7F;
-        public int ThreatLevel = 0;
+        public int ThreatLevel
+        {
+            get { return ThreatLevel_cached; }
+            set
+            {
+                ThreatLevel_cached = value;
+                ThreatLevel_enum = CalculateThreatLevel(value);
+            }
+        }
+        [SerializeField] private int ThreatLevel_cached;
+        public EThreatLevel ThreatLevel_enum;
+        public static EThreatLevel CalculateThreatLevel(int value)
+        {
+            if(value == 0) return EThreatLevel.None;
+            if(value <= 3) return EThreatLevel.Low;
+            if(value <= 7) return EThreatLevel.Medium;
+            if(value <= 12) return EThreatLevel.High;
+            return EThreatLevel.Impossible;
+        }
         public Transform body;
         public TextMeshProUGUI debugText;
         public bool playerOwned;
         protected bool acting;
+
+        void Awake()
+        {
+            //ThreatLevel_cached = ThreatLevel_enum;
+        }
         // Use this for initialization
         void Start()
         {
             collider = this.gameObject.GetComponent<BoxCollider2D>();
 
-            InitialiseUnit();
+            
         }
-        protected virtual void InitialiseUnit()
+        public virtual void InitialiseUnit()
         {
 
         }
@@ -119,7 +146,7 @@ namespace Gull
             body.transform.localScale = new Vector3(1, 1, 1);
         }
 
-        public virtual int GetThreatLevel(){return ThreatLevel;}
+        public virtual int GetThreatLevel() { return (int)ThreatLevel; }
 
 
     }

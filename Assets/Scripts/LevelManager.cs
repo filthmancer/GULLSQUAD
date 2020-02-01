@@ -22,16 +22,17 @@ public class LevelManager : MonoBehaviour
 
     void Start()
     {
+        level.Rebuild();
         units = new List<Unit>();
         foreach (SpawnPoint p in spawnPoints)
         {
             Unit u = Instantiate(seagull, this.transform, true);
-            if (units.Count > 0) u.ThreatLevel = 2;
             u.transform.localScale = Vector3.one;
             u.transform.position = p.transform.position;
             units.Add(u);
         }
 
+        foreach(Gull.Unit unit in level.enemies) unit.InitialiseUnit();
 
     }
     public void EatChip(Chip c, Unit u = null)
@@ -43,22 +44,21 @@ public class LevelManager : MonoBehaviour
         StartCoroutine(Gull.Posters.Level.Post(new Gull.Events.Level.EatItem() { Item = c, Unit = u }));
     }
 
-    public int GetRadialPlayerThreatLevel(Vector3 position, float radius)
+    public Gull.EThreatLevel GetRadialPlayerThreatLevel(Vector3 position, float radius)
     {
         List<Gull.Unit> units;
         return GetRadialThreatLevel(position, radius, true, out units);
     }
 
-    public int GetRadialEnemyThreatLevel(Vector3 position, float radius)
+    public Gull.EThreatLevel GetRadialEnemyThreatLevel(Vector3 position, float radius)
     {
         List<Gull.Unit> units;
         return GetRadialThreatLevel(position, radius, false, out units);
     }
 
-    public int GetRadialThreatLevel(Vector3 position, float radius, bool player, out List<Gull.Unit> units)
+    public Gull.EThreatLevel GetRadialThreatLevel(Vector3 position, float radius, bool player, out List<Gull.Unit> units)
     {
         units = new List<Gull.Unit>();
-        int finalThreat = 0;
         RaycastHit2D[] hits = Physics2D.CircleCastAll(position, radius, Vector2.zero);
         foreach (RaycastHit2D hit in hits)
         {
@@ -66,11 +66,29 @@ public class LevelManager : MonoBehaviour
             {
                 Gull.Unit unit = hit.transform.GetComponent<Gull.Unit>();
                 if (unit.playerOwned != player) continue;
-                finalThreat += unit.GetThreatLevel();
                 units.Add(unit);
             }
         }
-        return finalThreat;
+
+        //# Check for impossible units in radius
+        if(units.Find( u => u.ThreatLevel_enum == EThreatLevel.Impossible)) return EThreatLevel.Impossible;
+
+        //# Calculate outcome threat level
+        //# - 1 or more Low units = Low
+        //# - 3 or more Low units OR 1 or more Med unit = Med
+        //# - 2 or more Med units OR 1 or more High unit = High
+
+        EThreatLevel final = EThreatLevel.None;
+
+        List<Gull.Unit> low_units = units.FindAll(u => u.ThreatLevel_enum == EThreatLevel.Low);
+        if(low_units.Count >= 1) final = EThreatLevel.Low;
+
+        List<Gull.Unit> med_units = units.FindAll(u => u.ThreatLevel_enum == EThreatLevel.Medium);
+        if(low_units.Count >= 3 || med_units.Count >= 1) final = EThreatLevel.Medium;
+
+        List<Gull.Unit> high_units = units.FindAll(u => u.ThreatLevel_enum == EThreatLevel.High);
+        if(med_units.Count >= 2 || high_units.Count >= 1) final = EThreatLevel.High;
+        return final;
     }
 }
 

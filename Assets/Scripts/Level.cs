@@ -9,12 +9,13 @@ public class Level : MonoBehaviour
 {
     public List<Chip> chips;
     public List<SpawnPoint> spawnPoints;
-
+    public List<Unit> enemies;
 
     public void Rebuild()
     {
         chips = new List<Chip>(transform.GetComponentsInChildren<Chip>());
         spawnPoints = new List<SpawnPoint>(transform.GetComponentsInChildren<SpawnPoint>());
+        enemies = new List<Unit>(transform.GetComponentsInChildren<Gull.Unit>());
     }
 }
 

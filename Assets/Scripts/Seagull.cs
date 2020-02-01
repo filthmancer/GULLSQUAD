@@ -12,8 +12,8 @@ namespace Gull
         public Transform leftFootUp, rightFootUp;
         protected Vector3 body_initPosition, leftFoot_initPosition, rightFoot_initPosition;
         public int stomachCurrent, stomachMax = 5;
-
-        protected override void InitialiseUnit()
+        public EThreatLevel ThreatLevel_Real;
+        public override void InitialiseUnit()
         {
             body.transform.DOMove(sittingPosition.position, animTime);
             body_initPosition = body.transform.localPosition;
@@ -25,7 +25,13 @@ namespace Gull
                 if (_event.Unit == this) stomachCurrent = Mathf.Clamp(stomachCurrent + 1, 0, stomachMax);
                 moveSpeed = Mathf.Clamp(moveSpeedInit * (1.0F - ((float)stomachCurrent / (float)stomachMax)), moveSpeedInit * 0.4F, moveSpeedInit);
             });
-            debugText.text = ThreatLevel.ToString();
+
+        }
+
+        protected override void UpdateUnit()
+        {
+            ThreatLevel_Real = LevelManager.instance.GetRadialPlayerThreatLevel(transform.position, 60);
+            debugText.text = ThreatLevel_Real.ToString();
         }
         public void OnEnterHover()
         {
@@ -94,7 +100,7 @@ namespace Gull
 
         bool CheckEnemyThreatLevel(Vector3 position)
         {
-            return (LevelManager.instance.GetRadialEnemyThreatLevel(position, 40) >= ThreatLevel);
+            return (LevelManager.instance.GetRadialEnemyThreatLevel(position, 40) > ThreatLevel_Real);
         }
 
 
